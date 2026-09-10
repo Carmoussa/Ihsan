@@ -1,22 +1,22 @@
 import { useState } from 'react'
-import { envoyerLienMagique } from '../lib/authLink'
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { auth } from '../lib/firebase'
 
 export default function AdminConnexion() {
-  const [email, setEmail] = useState('')
   const [envoi, setEnvoi] = useState(false)
-  const [envoye, setEnvoye] = useState(false)
   const [erreur, setErreur] = useState('')
 
-  async function handleSubmit(e) {
-    e.preventDefault()
+  async function connexionGoogle() {
     setErreur('')
     setEnvoi(true)
     try {
-      await envoyerLienMagique(email, '/admin')
-      setEnvoye(true)
+      await signInWithPopup(auth, new GoogleAuthProvider())
+      // AuthContext détecte la connexion et rafraîchit automatiquement la page.
     } catch (err) {
       console.error(err)
-      setErreur("L'envoi du lien n'a pas abouti. Vérifiez l'adresse saisie.")
+      if (err.code !== 'auth/popup-closed-by-user') {
+        setErreur('La connexion a échoué. Merci de réessayer.')
+      }
     } finally {
       setEnvoi(false)
     }
@@ -25,28 +25,14 @@ export default function AdminConnexion() {
   return (
     <>
       <h1>Espace administrateur</h1>
-      {envoye ? (
-        <div className="message message-succes">
-          Un lien de connexion vient de vous être envoyé à {email}. Ouvrez-le pour
-          accéder au tableau de bord.
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <div className="champ">
-            <label htmlFor="email">Votre adresse email d'administrateur</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          {erreur && <div className="message message-erreur">{erreur}</div>}
-          <button type="submit" className="bouton" disabled={envoi}>
-            {envoi ? 'Envoi…' : 'Recevoir le lien de connexion'}
-          </button>
-        </form>
-      )}
+      <p style={{ color: 'var(--ink-soft)' }}>
+        Réservé aux administrateurs autorisés. Connectez-vous avec le compte
+        Google associé à votre adresse email d'administrateur.
+      </p>
+      {erreur && <div className="message message-erreur">{erreur}</div>}
+      <button className="bouton" onClick={connexionGoogle} disabled={envoi}>
+        {envoi ? 'Connexion…' : 'Se connecter avec Google'}
+      </button>
     </>
   )
 }

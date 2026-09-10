@@ -457,6 +457,25 @@ table.tableau-admin td {
   cursor: not-allowed;
 }
 
+.bouton-icone-mini {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.bouton-icone-mini:hover {
+  color: var(--danger);
+  background: var(--paper);
+}
+
 /* Fenêtre modale de confirmation */
 
 .fenetre-modale-fond {

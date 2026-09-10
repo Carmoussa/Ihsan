@@ -12,11 +12,7 @@ export default function GestionAdmins() {
   const [admins, setAdmins] = useState(null)
 
   const [emailAdmin, setEmailAdmin] = useState('')
-  const [pageIdsAdmin, setPageIdsAdmin] = useState([])
-  const [superAdminFlag, setSuperAdminFlag] = useState(false)
   const [erreur, setErreur] = useState('')
-  const [adminExistant, setAdminExistant] = useState(null)
-
   const [adminARevoquer, setAdminARevoquer] = useState(null)
 
   async function charger() {
@@ -29,37 +25,21 @@ export default function GestionAdmins() {
     charger()
   }, [])
 
-  // Dès que l'email saisi correspond à un admin déjà autorisé, on
-  // pré-remplit le formulaire avec ses droits actuels — cocher une page de
-  // plus l'ajoute réellement, au lieu d'écraser les précédentes.
-  useEffect(() => {
-    const emailNormalise = emailAdmin.trim().toLowerCase()
-    const existant = admins?.find((a) => a.email === emailNormalise) || null
-    setAdminExistant(existant)
-    if (existant) {
-      setPageIdsAdmin(existant.pageIds || [])
-      setSuperAdminFlag(!!existant.superAdmin)
-    }
-  }, [emailAdmin, admins])
+  const emailNormalise = emailAdmin.trim().toLowerCase()
+  const dejaAdmin = emailNormalise ? admins?.find((a) => a.email === emailNormalise) : null
 
-  async function handleAutoriserAdmin(e) {
+  async function handleAjouter(e) {
     e.preventDefault()
     setErreur('')
-    const emailNormalise = emailAdmin.trim().toLowerCase()
-    if (!emailNormalise) return
+    if (!emailNormalise || dejaAdmin) return
 
     if (emailNormalise === moiEmail) {
-      setErreur(
-        "Vous ne pouvez pas modifier vos propres droits depuis ce formulaire. Demandez à un⋅e autre super-administrateur⋅rice si besoin.",
-      )
+      setErreur("Vous ne pouvez pas modifier vos propres droits depuis ce formulaire.")
       return
     }
 
-    await autoriserAdmin(emailNormalise, { pageIds: pageIdsAdmin, superAdmin: superAdminFlag })
+    await autoriserAdmin(emailNormalise, { pageIds: [], superAdmin: false })
     setEmailAdmin('')
-    setPageIdsAdmin([])
-    setSuperAdminFlag(false)
-    setAdminExistant(null)
     charger()
   }
 
@@ -69,20 +49,25 @@ export default function GestionAdmins() {
     charger()
   }
 
+  async function basculerPageAdmin(a, pageId) {
+    const actuelles = a.pageIds || []
+    const nouvelles = actuelles.includes(pageId)
+      ? actuelles.filter((id) => id !== pageId)
+      : [...actuelles, pageId]
+    await autoriserAdmin(a.email, { pageIds: nouvelles, superAdmin: a.superAdmin })
+    charger()
+  }
+
   async function confirmerRevocation() {
     await revoquerAdmin(adminARevoquer.email)
     setAdminARevoquer(null)
     charger()
   }
 
-  function togglePageId(id) {
-    setPageIdsAdmin((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
-  }
-
   return (
     <>
-      <h2 style={{ marginTop: 48 }}>Autoriser un administrateur</h2>
-      <form onSubmit={handleAutoriserAdmin}>
+      <h2 style={{ marginTop: 48 }}>Ajouter un administrateur</h2>
+      <form onSubmit={handleAjouter}>
         <div className="champ">
           <input
             type="email"
@@ -90,53 +75,11 @@ export default function GestionAdmins() {
             value={emailAdmin}
             onChange={(e) => setEmailAdmin(e.target.value)}
           />
-          {adminExistant && (
-            <small>
-              Cette personne a déjà des droits — le formulaire est pré-rempli ; ajoutez une page
-              sans décocher les autres pour les conserver.
-            </small>
-          )}
+          {dejaAdmin && <small>Cette personne est déjà administratrice.</small>}
         </div>
-
-        <div style={{ display: 'flex', gap: 32, marginBottom: 16 }}>
-          <div style={{ flex: 1 }}>
-            {pages?.map((p) => (
-              <label
-                key={p.id}
-                style={{
-                  display: 'block',
-                  fontWeight: 'normal',
-                  marginBottom: 6,
-                  opacity: superAdminFlag ? 0.5 : 1,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={pageIdsAdmin.includes(p.id)}
-                  onChange={() => togglePageId(p.id)}
-                  disabled={superAdminFlag}
-                  style={{ width: 'auto', marginRight: 8 }}
-                />
-                {p.nom}
-              </label>
-            ))}
-          </div>
-          <div>
-            <label style={{ fontWeight: 'normal', whiteSpace: 'nowrap' }}>
-              <input
-                type="checkbox"
-                checked={superAdminFlag}
-                onChange={(e) => setSuperAdminFlag(e.target.checked)}
-                style={{ width: 'auto', marginRight: 8 }}
-              />
-              Super-admin
-            </label>
-          </div>
-        </div>
-
         {erreur && <div className="message message-erreur">{erreur}</div>}
-        <button type="submit" className="bouton">
-          Autoriser
+        <button type="submit" className="bouton" disabled={!!dejaAdmin}>
+          Ajouter
         </button>
       </form>
 
@@ -146,44 +89,60 @@ export default function GestionAdmins() {
           <div
             key={a.id}
             className="entree-temoignage"
-            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}
+            style={{ display: 'flex', justifyContent: 'space-between', gap: 20 }}
           >
-            <div>
+            <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 600 }}>
                 {a.email}
                 {estMoi && ' (vous)'}
               </div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--ink-soft)', marginTop: 4 }}>
-                {a.superAdmin
-                  ? 'Toutes les pages'
-                  : (a.pageIds || [])
-                      .map((id) => pages?.find((p) => p.id === id)?.nom || id)
-                      .join(', ') || 'Aucune page'}
+              <div style={{ marginTop: 10 }}>
+                {pages?.map((p) => (
+                  <label
+                    key={p.id}
+                    style={{
+                      display: 'block',
+                      fontWeight: 'normal',
+                      fontSize: '0.9rem',
+                      marginBottom: 6,
+                      opacity: a.superAdmin ? 0.5 : 1,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={a.superAdmin || (a.pageIds || []).includes(p.id)}
+                      disabled={a.superAdmin}
+                      onChange={() => basculerPageAdmin(a, p.id)}
+                      style={{ width: 'auto', marginRight: 8 }}
+                    />
+                    {p.nom}
+                  </label>
+                ))}
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '0.78rem', color: 'var(--ink-soft)', marginBottom: 4 }}>
-                  Admin
-                </div>
-                <input
-                  type="checkbox"
-                  checked={!!a.superAdmin}
-                  disabled={estMoi}
-                  onChange={(e) => basculerSuperAdmin(a, e.target.checked)}
-                  style={{ width: 18, height: 18 }}
-                  title={estMoi ? 'Vous ne pouvez pas modifier vos propres droits' : 'Super-administrateur'}
-                />
+            <div style={{ textAlign: 'center', flexShrink: 0 }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--ink-soft)', marginBottom: 4 }}>
+                Admin
               </div>
-              <button
-                className="bouton-icone rejeter"
+              <input
+                type="checkbox"
+                checked={!!a.superAdmin}
                 disabled={estMoi}
-                title={estMoi ? 'Vous ne pouvez pas retirer vos propres droits' : 'Retirer les droits'}
-                onClick={() => setAdminARevoquer(a)}
-              >
-                <Trash2 size={18} />
-              </button>
+                onChange={(e) => basculerSuperAdmin(a, e.target.checked)}
+                style={{ width: 18, height: 18 }}
+                title={estMoi ? 'Vous ne pouvez pas modifier vos propres droits' : 'Super-administrateur'}
+              />
+              <div style={{ marginTop: 16 }}>
+                <button
+                  className="bouton-icone rejeter"
+                  disabled={estMoi}
+                  title={estMoi ? 'Vous ne pouvez pas retirer vos propres droits' : 'Retirer les droits'}
+                  onClick={() => setAdminARevoquer(a)}
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
             </div>
           </div>
         )

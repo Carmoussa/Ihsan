@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Pencil, Power, PowerOff, Trash2 } from 'lucide-react'
+import { Pencil, Power, PowerOff, Trash2, Plus } from 'lucide-react'
 import { listerPages, creerPage, modifierPage, basculerActivationPage, supprimerPage } from '../lib/data'
 import ConfirmDialog from './ConfirmDialog'
 
@@ -7,6 +7,7 @@ const CHAMPS_VIDES = { nom: '', dates: '', bio: '', photoUrl: '' }
 
 export default function GestionPages() {
   const [pages, setPages] = useState(null)
+  const [creationOuverte, setCreationOuverte] = useState(false)
   const [nouvellePage, setNouvellePage] = useState(CHAMPS_VIDES)
   const [pageEnEditionId, setPageEnEditionId] = useState(null)
   const [champsEdition, setChampsEdition] = useState(CHAMPS_VIDES)
@@ -30,6 +31,7 @@ export default function GestionPages() {
       photoUrl: nouvellePage.photoUrl.trim(),
     })
     setNouvellePage(CHAMPS_VIDES)
+    setCreationOuverte(false)
     charger()
   }
 
@@ -62,44 +64,18 @@ export default function GestionPages() {
 
   return (
     <>
-      <h2 style={{ marginTop: 48 }}>Créer une page</h2>
-      <form onSubmit={handleCreerPage}>
-        <div className="champ">
-          <label>Nom de la personne</label>
-          <input
-            value={nouvellePage.nom}
-            onChange={(e) => setNouvellePage({ ...nouvellePage, nom: e.target.value })}
-            dir="auto"
-          />
-        </div>
-        <div className="champ">
-          <label>Dates (ex. 1945 – 2024)</label>
-          <input
-            value={nouvellePage.dates}
-            onChange={(e) => setNouvellePage({ ...nouvellePage, dates: e.target.value })}
-          />
-        </div>
-        <div className="champ">
-          <label>Courte présentation (optionnel)</label>
-          <textarea
-            value={nouvellePage.bio}
-            onChange={(e) => setNouvellePage({ ...nouvellePage, bio: e.target.value })}
-            dir="auto"
-          />
-        </div>
-        <div className="champ">
-          <label>URL de la photo (optionnel)</label>
-          <input
-            value={nouvellePage.photoUrl}
-            onChange={(e) => setNouvellePage({ ...nouvellePage, photoUrl: e.target.value })}
-          />
-        </div>
-        <button type="submit" className="bouton">
-          Créer la page
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 48 }}>
+        <h2 style={{ margin: 0 }}>Pages existantes</h2>
+        <button
+          className="bouton-icone"
+          onClick={() => setCreationOuverte(true)}
+          aria-label="Ajouter une page"
+          title="Ajouter une page"
+        >
+          <Plus size={18} />
         </button>
-      </form>
+      </div>
 
-      <h2 style={{ marginTop: 48 }}>Pages existantes</h2>
       {pages?.map((p) =>
         pageEnEditionId === p.id ? (
           <form key={p.id} onSubmit={enregistrerEdition} className="entree-temoignage">
@@ -188,6 +164,67 @@ export default function GestionPages() {
             </div>
           </div>
         ),
+      )}
+
+      {creationOuverte && (
+        <div className="fenetre-modale-fond" role="presentation" onClick={() => setCreationOuverte(false)}>
+          <div
+            className="fenetre-modale"
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Ajouter une page</h3>
+            <form onSubmit={handleCreerPage}>
+              <div className="champ">
+                <label>Nom de la personne</label>
+                <input
+                  value={nouvellePage.nom}
+                  onChange={(e) => setNouvellePage({ ...nouvellePage, nom: e.target.value })}
+                  dir="auto"
+                  autoFocus
+                />
+              </div>
+              <div className="champ">
+                <label>Dates (ex. 1945 – 2024)</label>
+                <input
+                  value={nouvellePage.dates}
+                  onChange={(e) => setNouvellePage({ ...nouvellePage, dates: e.target.value })}
+                />
+              </div>
+              <div className="champ">
+                <label>Courte présentation (optionnel)</label>
+                <textarea
+                  value={nouvellePage.bio}
+                  onChange={(e) => setNouvellePage({ ...nouvellePage, bio: e.target.value })}
+                  dir="auto"
+                />
+              </div>
+              <div className="champ">
+                <label>URL de la photo (optionnel)</label>
+                <input
+                  value={nouvellePage.photoUrl}
+                  onChange={(e) => setNouvellePage({ ...nouvellePage, photoUrl: e.target.value })}
+                />
+              </div>
+              <div className="groupe-boutons">
+                <button type="submit" className="bouton">
+                  Créer la page
+                </button>
+                <button
+                  type="button"
+                  className="bouton bouton-discret"
+                  onClick={() => {
+                    setCreationOuverte(false)
+                    setNouvellePage(CHAMPS_VIDES)
+                  }}
+                >
+                  Annuler
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {action && (

@@ -15,7 +15,8 @@ Stack : React + Vite, hébergé sur **GitHub Pages**, backend **Firebase**
    - Copie les valeurs affichées (`apiKey`, `authDomain`, etc.) — tu en auras besoin à l'étape 3.
 3. Dans le menu de gauche de la console, trouve **Authentication** (l'intitulé exact du regroupement — "Build", "Compilation", ou directement la liste des produits — dépend de la version de la console). Si tu ne le vois pas, utilise la **loupe de recherche** en haut de la console Firebase et tape "Authentication" pour y accéder directement.
    - Clique sur **Commencer** (ou **Get started**) si c'est la première fois.
-   - Onglet **Sign-in method** → active **Email/Password** → un sous-réglage apparaît, active **"Lien e-mail (connexion sans mot de passe)"** (en anglais : "Email link (passwordless sign-in)").
+   - Onglet **Sign-in method** → active **Email/Password** → un sous-réglage apparaît, active **"Lien e-mail (connexion sans mot de passe)"** (en anglais : "Email link (passwordless sign-in)"). Utilisé par les visiteurs pour modifier leur témoignage.
+   - Toujours dans **Sign-in method**, active aussi **Google** — c'est ce que les administrateurs utilisent pour se connecter à `/admin` (un simple clic, pas d'email envoyé, donc aucun quota à surveiller de ce côté).
 4. Fais la même chose pour **Firestore Database** (cherche-le aussi via la loupe si besoin) → **Créer une base de données**.
    - Choisis une région proche (ex. `eur3 (Europe)`).
    - Démarre en **mode production** (les règles de sécurité fournies dans ce dépôt s'en chargent).
