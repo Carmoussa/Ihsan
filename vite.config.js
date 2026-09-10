@@ -7,7 +7,7 @@ import react from '@vitejs/plugin-react'
 // Si tu utilises un domaine personnalisé ou un site "tonpseudo.github.io" (dépôt racine), mets base: '/'.
 export default defineConfig({
   plugins: [react()],
-  base: '/Ihsan/',
+  base: '/Ihsan',
   server: {
     port: 5175,
     strictPort: true,
