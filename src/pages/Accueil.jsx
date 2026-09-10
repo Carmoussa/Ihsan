@@ -1,52 +1,64 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { listerPages } from '../lib/data'
 
+// Texte fourni par Malika. La version arabe est une traduction qu'elle a
+// elle-même signalée comme automatique et possiblement imparfaite par
+// endroits ("nos souvenirs" notamment) — laissée telle quelle, à affiner
+// de son côté si besoin.
 export default function Accueil() {
-  const [pages, setPages] = useState(null)
-  const [erreur, setErreur] = useState('')
-
-  useEffect(() => {
-    listerPages()
-      .then(setPages)
-      .catch(() => setErreur("Impossible de charger les pages pour l'instant."))
-  }, [])
-
   return (
-    <>
-      <h1>En mémoire</h1>
-      <p style={{ color: 'var(--ink-soft)' }}>
-        Un espace pour déposer un souvenir ou un mot à l'intention de celles et ceux
-        qui nous ont quittés.
-      </p>
+    <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 0' }}>
+      <section lang="ar" dir="rtl" className="texte-arabe" style={{ textAlign: 'right' }}>
+        <h1 style={{ fontFamily: 'var(--arabe)', fontSize: '1.6rem', marginBottom: '0.8em' }}>
+          مَرْحَبًا بِكُمْ فِي إِحْسَان
+        </h1>
+        <p>
+          لأنَّ الرَّاحِلِينَ عَنَّا يَسْتَمِرُّونَ فِي الحَيَاةِ عَبْرَ ذِكْرَاهُمْ، خُصِّصَ هَذَا
+          الفَضَاءُ لِذِكْرَاهُمْ، وَالتَّوَاصُلِ، وَالبِرِّ وَالإِحْسَانِ.
+        </p>
+        <p>
+          إِنَّ العَزِيزَ عَلَى قُلُوبِنَا يَعِيشُ عَبْرَ الإِرْثِ الثَّمِينِ الَّذِي يَتْرُكُهُ. لَقَدْ
+          تَمَّ إِنْشَاءُ هَذَا المَوْقِعِ لِمُشَارَكَةِ هَذَا الإِرْثِ، وَلِكَيْ نَتَذَكَّرَ مَا خَلَّفُوهُ
+          لَنَا.
+        </p>
+        <p>
+          وَامْتِثَالاً لِذِكْرِ مَحَاسِنِ مَوْتَانَا، نَدْعُوكُمْ لِمُشَارَكَةِ قِصَصِكُمْ وَأَجْمَلِ
+          ذِكْرَيَاتِكُمْ مَعَهُمْ هُنَا. ادْخُلُوا بِاحْتِرَامٍ، وَاقْرَؤُوا بِعَاطِفَةٍ، وَاكْتُبُوا مِنَ
+          القَلْبِ.
+        </p>
+        <p>نَسْأَلُ اللَّهَ أَنْ يَرْحَمَ الأَحْيَاءَ مِنَّا وَالأَمْوَاتَ.</p>
+      </section>
 
-      {erreur && <div className="message message-erreur">{erreur}</div>}
+      <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '32px 0' }} />
 
-      {pages === null && !erreur && <p className="vide">Chargement…</p>}
+      <section lang="fr" dir="ltr">
+        <h2 style={{ marginBottom: '0.6em' }}>Bienvenue sur Ihsan</h2>
+        <p>
+          Parce que les êtres qui nous quittent continuent de vivre à travers nos
+          souvenirs, cet espace est dédié à leur mémoire, à la transmission et à
+          la bienveillance.
+        </p>
+        <p>
+          Un être cher vit au travers de l'héritage précieux qu'il laisse. Ce
+          site a été créé pour partager ces héritages, et se rappeler ce qu'ils
+          ont légué.
+        </p>
+        <p>
+          Évoquant nos défunts par ce qu'ils avaient de meilleur, partagez ici
+          vos anecdotes et vos plus beaux souvenirs avec eux. Entrez avec
+          respect, lisez avec émotion, et écrivez avec le cœur.
+        </p>
+        <p>Puisse Allah accorder Sa miséricorde aux vivants ainsi qu'aux défunts.</p>
+      </section>
 
-      {pages?.length === 0 && (
-        <p className="vide">Aucune page n'a encore été créée.</p>
-      )}
-
-      {pages?.length > 0 && (
-        <ul className="liste-personnes">
-          {pages.map((p) => (
-            <li key={p.id}>
-              <Link to={`/personne/${p.id}`} className="lien-personne">
-                {p.photoUrl ? (
-                  <img src={p.photoUrl} alt="" className="portrait" />
-                ) : (
-                  <span className="portrait" aria-hidden="true" />
-                )}
-                <span>
-                  <span className="lien-personne-nom">{p.nom}</span>
-                  {p.dates && <span className="lien-personne-dates">{p.dates}</span>}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </>
+      <div style={{ textAlign: 'center' }}>
+        <Link
+          to="/temoignages"
+          className="bouton"
+          style={{ display: 'inline-block', marginTop: 16, textDecoration: 'none' }}
+        >
+          Voir les témoignages
+        </Link>
+      </div>
+    </div>
   )
 }

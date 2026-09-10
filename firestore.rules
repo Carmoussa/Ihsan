@@ -78,15 +78,18 @@ service cloud.firestore {
 
         allow delete: if estAdminDeLaPage(pageId)
           || (estConnecte() && resource.data.email == emailUtilisateur());
-
-        // ---------- signalements ----------
-        match /signalements/{signalementId} {
-          allow create: if request.resource.data.pageId == pageId
-            && request.resource.data.temoignageId == temoignageId
-            && request.resource.data.traite == false;
-          allow read, update, delete: if estAdminDeLaPage(pageId);
-        }
       }
+    }
+
+    // ---------- signalements ----------
+    // Collection de premier niveau (pas imbriquée sous pages/temoignages) :
+    // ça permet des requêtes normales plutôt que des requêtes "collection
+    // group", plus simples à valider de façon fiable par les règles.
+    match /signalements/{signalementId} {
+      allow create: if request.resource.data.pageId is string
+        && request.resource.data.temoignageId is string
+        && request.resource.data.traite == false;
+      allow read, update, delete: if estAdminDeLaPage(resource.data.pageId);
     }
   }
 }

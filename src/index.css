@@ -389,6 +389,11 @@ main {
   color: var(--moss-deep);
 }
 
+.etiquette-statut.rejete {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
 .groupe-boutons {
   display: flex;
   gap: 10px;
@@ -407,4 +412,68 @@ table.tableau-admin td {
   text-align: left;
   padding: 10px 8px;
   border-bottom: 1px solid var(--line);
+}
+
+/* Boutons icônes (compacts, pensés mobile) */
+
+.bouton-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--paper-raised);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.bouton-icone:hover {
+  background: #fff;
+}
+
+.bouton-icone.approuver {
+  color: var(--moss-deep);
+  border-color: var(--moss);
+}
+
+.bouton-icone.rejeter {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.bouton-icone:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Fenêtre modale de confirmation */
+
+.fenetre-modale-fond {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 42, 40, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+
+.fenetre-modale {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.tableau-admin .lien-discret[disabled],
+.lien-discret:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  text-decoration: none;
 }

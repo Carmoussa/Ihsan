@@ -5,6 +5,14 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "statut", "order": "ASCENDING" },
+        { "fieldPath": "creeLe", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "temoignages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "statut", "order": "ASCENDING" },
         { "fieldPath": "creeLe", "order": "ASCENDING" }
       ]
     },
@@ -18,7 +26,7 @@
     },
     {
       "collectionGroup": "signalements",
-      "queryScope": "COLLECTION_GROUP",
+      "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "pageId", "order": "ASCENDING" },
         { "fieldPath": "traite", "order": "ASCENDING" }

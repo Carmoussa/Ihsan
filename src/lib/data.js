@@ -33,9 +33,23 @@ export async function creerPage({ nom, dates, bio, photoUrl }) {
     dates: dates || '',
     bio: bio || '',
     photoUrl: photoUrl || '',
+    actif: true,
     creeLe: serverTimestamp(),
   })
   return ref.id
+}
+
+export async function modifierPage(pageId, { nom, dates, bio, photoUrl }) {
+  await updateDoc(doc(db, 'pages', pageId), {
+    nom,
+    dates: dates || '',
+    bio: bio || '',
+    photoUrl: photoUrl || '',
+  })
+}
+
+export async function basculerActivationPage(pageId, actif) {
+  await updateDoc(doc(db, 'pages', pageId), { actif })
 }
 
 export async function supprimerPage(pageId) {
@@ -90,6 +104,32 @@ export async function changerStatutTemoignage(pageId, temoignageId, statut) {
   })
 }
 
+export async function approuverTemoignage(pageId, temoignageId) {
+  await updateDoc(doc(db, 'pages', pageId, 'temoignages', temoignageId), {
+    statut: 'approuve',
+    motifRejet: '',
+  })
+}
+
+export async function rejeterTemoignage(pageId, temoignageId, motif) {
+  await updateDoc(doc(db, 'pages', pageId, 'temoignages', temoignageId), {
+    statut: 'rejete',
+    motifRejet: motif || '',
+  })
+}
+
+// Tous les témoignages (tous statuts) déposés par une adresse email donnée,
+// sur une page précise — permet à l'auteur de voir où en est son témoignage
+// (y compris en attente ou refusé) lorsqu'il revient via son lien magique.
+export async function listerMesTemoignagesSurPage(pageId, email) {
+  const q = query(
+    collection(db, 'pages', pageId, 'temoignages'),
+    where('email', '==', email.trim().toLowerCase()),
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+}
+
 export async function supprimerTemoignage(pageId, temoignageId) {
   await deleteDoc(doc(db, 'pages', pageId, 'temoignages', temoignageId))
 }
@@ -113,23 +153,22 @@ export async function listerMesTemoignages(email) {
 // ---------- Signalements ----------
 
 export async function signalerTemoignage(pageId, temoignageId, motif) {
-  await addDoc(
-    collection(db, 'pages', pageId, 'temoignages', temoignageId, 'signalements'),
-    {
-      pageId,
-      temoignageId,
-      motif: motif || '',
-      creeLe: serverTimestamp(),
-      traite: false,
-    },
-  )
+  await addDoc(collection(db, 'signalements'), {
+    pageId,
+    temoignageId,
+    motif: motif || '',
+    creeLe: serverTimestamp(),
+    traite: false,
+  })
 }
 
-// Signalements non traités pour une page donnée (dénormalise pageId pour permettre
-// cette requête "collection group" filtrée, cf. firestore.rules).
+// Signalements non traités pour une page donnée. "signalements" est une
+// collection de premier niveau (pas imbriquée) : ça en fait une requête
+// normale plutôt qu'une requête "collection group", ce qui simplifie
+// beaucoup la validation par les règles de sécurité.
 export async function listerSignalementsPage(pageId) {
   const q = query(
-    collectionGroup(db, 'signalements'),
+    collection(db, 'signalements'),
     where('pageId', '==', pageId),
     where('traite', '==', false),
   )
@@ -137,11 +176,8 @@ export async function listerSignalementsPage(pageId) {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 }
 
-export async function marquerSignalementTraite(pageId, temoignageId, signalementId) {
-  await updateDoc(
-    doc(db, 'pages', pageId, 'temoignages', temoignageId, 'signalements', signalementId),
-    { traite: true },
-  )
+export async function marquerSignalementTraite(signalementId) {
+  await updateDoc(doc(db, 'signalements', signalementId), { traite: true })
 }
 
 // ---------- Admins ----------

@@ -46,11 +46,9 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=...
 VITE_FIREBASE_APP_ID=...
 ```
 
-Lance le site en local pour vérifier que tout fonctionne :
-
-```bash
-npm run dev
-```
+Ne lance pas encore `npm run dev` — tant que les règles Firestore (étape
+suivante) ne sont pas déployées, Firestore refuse toute lecture par défaut et
+la page d'accueil affichera une erreur. C'est normal à ce stade.
 
 ## 4. Déployer les règles de sécurité et les index Firestore
 
@@ -63,6 +61,14 @@ npm install -g firebase-tools
 firebase login
 firebase use --add        # sélectionne ton projet Firebase
 firebase deploy --only firestore:rules,firestore:indexes
+```
+
+Tu peux maintenant lancer le site en local pour vérifier que la page
+d'accueil se charge (elle sera vide, c'est normal — aucune page n'existe
+encore) :
+
+```bash
+npm run dev
 ```
 
 ## 5. Créer le tout premier super-administrateur

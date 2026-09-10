@@ -38,9 +38,7 @@ export default function Layout({ children }) {
       </main>
       <footer className="pied">
         <div className="conteneur">
-          {user?.email
-            ? `Connecté·e en tant que ${user.email}`
-            : 'Un espace de recueil pour partager un souvenir.'}
+          {user?.email ? user.email : 'Un espace de recueil pour partager un souvenir.'}
         </div>
       </footer>
     </>

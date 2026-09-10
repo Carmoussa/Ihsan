@@ -17,7 +17,8 @@ export function AuthProvider({ children }) {
         try {
           const doc = await lireAdmin(firebaseUser.email)
           setAdmin(doc)
-        } catch {
+        } catch (err) {
+      console.error(err)
           setAdmin(null)
         }
       } else {

@@ -24,7 +24,8 @@ export default function FormulaireTemoignage({ pageId, onDepose }) {
       setEmail('')
       setTexte('')
       onDepose?.()
-    } catch {
+    } catch (err) {
+      console.error(err)
       setErreur("Le dépôt n'a pas abouti. Merci de réessayer.")
     } finally {
       setEnvoi(false)
@@ -51,6 +52,7 @@ export default function FormulaireTemoignage({ pageId, onDepose }) {
           value={nomAffiche}
           onChange={(e) => setNomAffiche(e.target.value)}
           maxLength={80}
+          dir="auto"
         />
       </div>
       <div className="champ">
@@ -69,6 +71,7 @@ export default function FormulaireTemoignage({ pageId, onDepose }) {
           value={texte}
           onChange={(e) => setTexte(e.target.value)}
           maxLength={2000}
+          dir="auto"
         />
         <small>{texte.length}/2000 caractères</small>
       </div>

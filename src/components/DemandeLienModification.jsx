@@ -15,7 +15,8 @@ export default function DemandeLienModification({ redirectPath }) {
     try {
       await envoyerLienMagique(email, redirectPath)
       setEnvoye(true)
-    } catch {
+    } catch (err) {
+      console.error(err)
       setErreur("L'envoi du lien n'a pas abouti. Vérifiez l'adresse saisie.")
     } finally {
       setEnvoi(false)

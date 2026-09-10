@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import Accueil from './pages/Accueil'
+import ListePersonnes from './pages/ListePersonnes'
 import Personne from './pages/Personne'
 import FinirConnexion from './pages/FinirConnexion'
 import Admin from './pages/Admin'
@@ -10,6 +11,7 @@ export default function App() {
     <Layout>
       <Routes>
         <Route path="/" element={<Accueil />} />
+        <Route path="/temoignages" element={<ListePersonnes />} />
         <Route path="/personne/:pageId" element={<Personne />} />
         <Route path="/connexion" element={<FinirConnexion />} />
         <Route path="/admin" element={<Admin />} />
