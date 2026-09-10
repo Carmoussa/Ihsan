@@ -5,9 +5,9 @@ import { Link } from 'react-router-dom'
 // version auto-traduite. La phrase de fin arabe reprend son texte d'origine.
 export default function Accueil() {
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 0' }}>
+    <div style={{ maxWidth: 640, margin: '0 auto', padding: '8px 0 24px' }}>
       <section lang="ar" dir="rtl" className="texte-arabe" style={{ textAlign: 'right' }}>
-        <h1 style={{ fontFamily: 'var(--arabe)', fontSize: '1.6rem', marginBottom: '0.8em' }}>
+        <h1 style={{ fontFamily: 'var(--arabe)', fontSize: '1.9rem', marginBottom: '0.6em' }}>
           مَرْحَبًا بِكُمْ فِي إِحْسَان
         </h1>
         <p>
