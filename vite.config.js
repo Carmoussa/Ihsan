@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// IMPORTANT : remplace "ihsan" par le nom exact de ton dépôt GitHub, s'il diffère.
-// Si ton site est publié sur https://tonpseudo.github.io/ihsan/, base doit être '/ihsan/'.
+// IMPORTANT : remplace "Ihsan" par le nom exact de ton dépôt GitHub, s'il diffère
+// (respecte la casse : majuscules/minuscules comptent ici).
+// Si ton site est publié sur https://tonpseudo.github.io/Ihsan/, base doit être '/Ihsan/'.
 // Si tu utilises un domaine personnalisé ou un site "tonpseudo.github.io" (dépôt racine), mets base: '/'.
 export default defineConfig({
   plugins: [react()],
-  base: '/ihsan/',
+  base: '/Ihsan/',
 })

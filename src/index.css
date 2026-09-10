@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600&display=swap');
+/* Polices chargées via <link> dans index.html (Fraunces, Source Sans 3, Noto Naskh Arabic) */
 
 :root {
   --paper: #efeae0;
@@ -14,6 +14,7 @@
 
   --serif: 'Fraunces', Georgia, serif;
   --sans: 'Source Sans 3', system-ui, sans-serif;
+  --arabe: 'Noto Naskh Arabic', serif;
 
   color-scheme: light;
 }
@@ -121,6 +122,13 @@ main {
   padding: 24px 0 40px;
   color: var(--ink-soft);
   font-size: 0.85rem;
+}
+
+/* Bloc de texte arabe : police et interlignage adaptés aux diacritiques */
+.texte-arabe {
+  font-family: var(--arabe);
+  line-height: 2.1;
+  font-size: 1.15rem;
 }
 
 /* Boutons et champs */
