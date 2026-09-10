@@ -1,0 +1,92 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estConnecte() {
+      return request.auth != null && request.auth.token.email != null;
+    }
+
+    function emailUtilisateur() {
+      return request.auth.token.email.lower();
+    }
+
+    function docAdmin() {
+      return get(/databases/$(database)/documents/admins/$(emailUtilisateur()));
+    }
+
+    function estAdmin() {
+      return estConnecte() &&
+        exists(/databases/$(database)/documents/admins/$(emailUtilisateur()));
+    }
+
+    function estSuperAdmin() {
+      return estAdmin() && docAdmin().data.superAdmin == true;
+    }
+
+    function estAdminDeLaPage(pageId) {
+      return estAdmin() &&
+        (docAdmin().data.superAdmin == true ||
+         pageId in docAdmin().data.pageIds);
+    }
+
+    // ---------- admins ----------
+    // Bootstrap du tout premier super-admin : à créer manuellement depuis la
+    // console Firebase (voir README). Ensuite, seuls les super-admins gèrent
+    // cette collection depuis l'application.
+    match /admins/{email} {
+      allow read: if estConnecte() && emailUtilisateur() == email;
+      allow read, write: if estSuperAdmin();
+    }
+
+    // ---------- pages (une par personne défunte) ----------
+    match /pages/{pageId} {
+      allow read: if true;
+      allow create, update, delete: if estSuperAdmin();
+
+      // ---------- témoignages ----------
+      match /temoignages/{temoignageId} {
+        allow read: if resource.data.statut == 'approuve'
+          || estAdminDeLaPage(pageId)
+          || (estConnecte() && resource.data.email == emailUtilisateur());
+
+        // Dépôt public : pas besoin d'être connecté. Le statut doit
+        // impérativement être "en_attente" à la création.
+        allow create: if request.resource.data.statut == 'en_attente'
+          && request.resource.data.nomAffiche is string
+          && request.resource.data.nomAffiche.size() > 0
+          && request.resource.data.nomAffiche.size() < 200
+          && request.resource.data.texte is string
+          && request.resource.data.texte.size() > 0
+          && request.resource.data.texte.size() < 3000
+          && request.resource.data.email is string
+          && request.resource.data.email.matches('^[^@]+@[^@]+[.][^@]+$');
+
+        // Le propriétaire (email correspondant au compte connecté via le lien
+        // magique) peut modifier ou supprimer son propre témoignage. Toute
+        // modification repasse obligatoirement au statut "en_attente".
+        allow update: if (estConnecte()
+            && resource.data.email == emailUtilisateur()
+            && request.resource.data.email == resource.data.email
+            && request.resource.data.statut == 'en_attente')
+          // ...ou un admin de la page qui ne fait que changer le statut
+          // (approbation/rejet), sans toucher au contenu.
+          || (estAdminDeLaPage(pageId)
+            && request.resource.data.nomAffiche == resource.data.nomAffiche
+            && request.resource.data.texte == resource.data.texte
+            && request.resource.data.email == resource.data.email);
+
+        allow delete: if estAdminDeLaPage(pageId)
+          || (estConnecte() && resource.data.email == emailUtilisateur());
+
+        // ---------- signalements ----------
+        match /signalements/{signalementId} {
+          allow create: if request.resource.data.pageId == pageId
+            && request.resource.data.temoignageId == temoignageId
+            && request.resource.data.traite == false;
+          allow read, update, delete: if estAdminDeLaPage(pageId);
+        }
+      }
+    }
+  }
+}

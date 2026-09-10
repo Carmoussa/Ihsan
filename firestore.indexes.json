@@ -1,0 +1,29 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "temoignages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "statut", "order": "ASCENDING" },
+        { "fieldPath": "creeLe", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "temoignages",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "email", "order": "ASCENDING" },
+        { "fieldPath": "creeLe", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "signalements",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "pageId", "order": "ASCENDING" },
+        { "fieldPath": "traite", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

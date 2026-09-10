@@ -1,0 +1,20 @@
+import { Routes, Route } from 'react-router-dom'
+import Layout from './components/Layout'
+import Accueil from './pages/Accueil'
+import Personne from './pages/Personne'
+import FinirConnexion from './pages/FinirConnexion'
+import Admin from './pages/Admin'
+
+export default function App() {
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Accueil />} />
+        <Route path="/personne/:pageId" element={<Personne />} />
+        <Route path="/connexion" element={<FinirConnexion />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="*" element={<p className="vide">Page introuvable.</p>} />
+      </Routes>
+    </Layout>
+  )
+}
