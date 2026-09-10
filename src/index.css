@@ -127,7 +127,7 @@ main {
 /* Bloc de texte arabe : police et interlignage adaptés aux diacritiques */
 .texte-arabe {
   font-family: var(--arabe);
-  line-height: 2.1;
+  line-height: 1.5;
   font-size: 1.15rem;
 }
 

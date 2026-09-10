@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
 
-// Texte fourni par Malika. La version arabe est une traduction qu'elle a
-// elle-même signalée comme automatique et possiblement imparfaite par
-// endroits ("nos souvenirs" notamment) — laissée telle quelle, à affiner
-// de son côté si besoin.
+// Texte de bienvenue, version resserrée validée avec Malika — la traduction
+// arabe corrige "nos souvenirs" (ذِكْرَيَاتِنَا) par rapport à la première
+// version auto-traduite. La phrase de fin arabe reprend son texte d'origine.
 export default function Accueil() {
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 0' }}>
@@ -12,40 +11,29 @@ export default function Accueil() {
           مَرْحَبًا بِكُمْ فِي إِحْسَان
         </h1>
         <p>
-          لأنَّ الرَّاحِلِينَ عَنَّا يَسْتَمِرُّونَ فِي الحَيَاةِ عَبْرَ ذِكْرَاهُمْ، خُصِّصَ هَذَا
-          الفَضَاءُ لِذِكْرَاهُمْ، وَالتَّوَاصُلِ، وَالبِرِّ وَالإِحْسَانِ.
+          لِأَنَّ مَنْ يُفَارِقُنَا يَبْقَى حَيًّا فِي ذِكْرَيَاتِنَا، خُصِّصَ هَذَا الفَضَاءُ
+          لِذِكْرِهِمْ، وَالتَّوَاصُلِ، وَالإِحْسَانِ بِاسْمِهِمْ.
         </p>
         <p>
-          إِنَّ العَزِيزَ عَلَى قُلُوبِنَا يَعِيشُ عَبْرَ الإِرْثِ الثَّمِينِ الَّذِي يَتْرُكُهُ. لَقَدْ
-          تَمَّ إِنْشَاءُ هَذَا المَوْقِعِ لِمُشَارَكَةِ هَذَا الإِرْثِ، وَلِكَيْ نَتَذَكَّرَ مَا خَلَّفُوهُ
-          لَنَا.
-        </p>
-        <p>
-          وَامْتِثَالاً لِذِكْرِ مَحَاسِنِ مَوْتَانَا، نَدْعُوكُمْ لِمُشَارَكَةِ قِصَصِكُمْ وَأَجْمَلِ
-          ذِكْرَيَاتِكُمْ مَعَهُمْ هُنَا. ادْخُلُوا بِاحْتِرَامٍ، وَاقْرَؤُوا بِعَاطِفَةٍ، وَاكْتُبُوا مِنَ
-          القَلْبِ.
+          شَارِكُونَا هُنَا ذِكْرَى أَوْ مَوْقِفًا أَوْ كَلِمَةً فِي حَقِّ مَنْ تَرَكُوا أَثَرًا فِي
+          حَيَاتِنَا. ادْخُلُوا بِاحْتِرَامٍ، وَاقْرَؤُوا بِعَاطِفَةٍ، وَاكْتُبُوا مِنَ القَلْبِ.
         </p>
         <p>نَسْأَلُ اللَّهَ أَنْ يَرْحَمَ الأَحْيَاءَ مِنَّا وَالأَمْوَاتَ.</p>
       </section>
 
-      <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '32px 0' }} />
+      <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '16px 0' }} />
 
-      <section lang="fr" dir="ltr">
+      <section lang="fr" dir="ltr" style={{ lineHeight: 1 }}>
         <h2 style={{ marginBottom: '0.6em' }}>Bienvenue sur Ihsan</h2>
         <p>
-          Parce que les êtres qui nous quittent continuent de vivre à travers nos
-          souvenirs, cet espace est dédié à leur mémoire, à la transmission et à
-          la bienveillance.
+          Parce que ceux qui nous quittent continuent de vivre à travers nos
+          souvenirs, cet espace leur est dédié : pour se souvenir, rester en
+          lien, et faire le bien en leur nom.
         </p>
         <p>
-          Un être cher vit au travers de l'héritage précieux qu'il laisse. Ce
-          site a été créé pour partager ces héritages, et se rappeler ce qu'ils
-          ont légué.
-        </p>
-        <p>
-          Évoquant nos défunts par ce qu'ils avaient de meilleur, partagez ici
-          vos anecdotes et vos plus beaux souvenirs avec eux. Entrez avec
-          respect, lisez avec émotion, et écrivez avec le cœur.
+          Partagez ici une anecdote, un souvenir, un mot pour celles et ceux
+          qui nous ont marqués. Entrez avec respect, lisez avec émotion,
+          écrivez avec le cœur.
         </p>
         <p>Puisse Allah accorder Sa miséricorde aux vivants ainsi qu'aux défunts.</p>
       </section>
