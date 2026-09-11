@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { deposerTemoignage, nouveauTemoignageId } from '../lib/data'
 import { uploaderFichier, validerFichierMedia, typeMedia } from '../lib/storage'
 import { notifierDepot } from '../lib/email'
+import ConfirmDialog from './ConfirmDialog'
 
-export default function FormulaireTemoignage({ pageId, nomPage, onDepose }) {
+export default function FormulaireTemoignage({ pageId, nomPage, onDepose, onAnnuler, onFermer }) {
   const [nomAffiche, setNomAffiche] = useState('')
   const [email, setEmail] = useState('')
   const [texte, setTexte] = useState('')
@@ -13,6 +14,7 @@ export default function FormulaireTemoignage({ pageId, nomPage, onDepose }) {
   const [erreur, setErreur] = useState('')
   const [succes, setSucces] = useState(false)
   const [codeConfirme, setCodeConfirme] = useState('')
+  const [confirmationAbandon, setConfirmationAbandon] = useState(false)
 
   function handleFichier(e) {
     const f = e.target.files?.[0]
@@ -84,82 +86,121 @@ export default function FormulaireTemoignage({ pageId, nomPage, onDepose }) {
     }
   }
 
+  function demanderAbandon() {
+    // Rien à saisir encore : pas besoin de confirmation, on ferme directement.
+    const vide = !nomAffiche.trim() && !email.trim() && !texte.trim() && !code.trim() && !fichier
+    if (vide) {
+      onAnnuler?.()
+    } else {
+      setConfirmationAbandon(true)
+    }
+  }
+
   if (succes) {
     return (
-      <div className="message message-succes">
-        Merci, votre témoignage a bien été reçu. Il sera visible sur cette page dès
-        qu'un administrateur l'aura validé.
-        <br />
-        <br />
-        <strong>Notez bien votre code : {codeConfirme}</strong>
-        <br />
-        Il vous permettra de modifier ou retirer votre témoignage plus tard, une fois
-        publié. Il ne peut pas être récupéré si vous l'oubliez.
-      </div>
+      <>
+        <div className="message message-succes">
+          Merci, votre témoignage a bien été reçu. Il sera visible sur cette page dès
+          qu'un administrateur l'aura validé.
+          <br />
+          <br />
+          <strong>Notez bien votre code : {codeConfirme}</strong>
+          <br />
+          Il vous permettra de modifier ou retirer votre témoignage plus tard, une fois
+          publié. Il ne peut pas être récupéré si vous l'oubliez.
+        </div>
+        <div className="groupe-boutons">
+          <button className="bouton" onClick={onFermer}>
+            Fermer
+          </button>
+        </div>
+      </>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="champ">
-        <label htmlFor="nomAffiche">Votre nom (affiché publiquement)</label>
-        <input
-          id="nomAffiche"
-          type="text"
-          value={nomAffiche}
-          onChange={(e) => setNomAffiche(e.target.value)}
-          maxLength={80}
-          dir="auto"
+    <>
+      <form onSubmit={handleSubmit}>
+        <div className="champ">
+          <label htmlFor="nomAffiche">Votre nom (affiché publiquement)</label>
+          <input
+            id="nomAffiche"
+            type="text"
+            value={nomAffiche}
+            onChange={(e) => setNomAffiche(e.target.value)}
+            maxLength={80}
+            dir="auto"
+          />
+        </div>
+        <div className="champ">
+          <label htmlFor="email">Votre email (optionnel, non affiché)</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div className="champ">
+          <label htmlFor="texte">Votre témoignage</label>
+          <textarea
+            id="texte"
+            value={texte}
+            onChange={(e) => setTexte(e.target.value)}
+            maxLength={5000}
+            dir="auto"
+          />
+          <small>{texte.length}/5000 caractères</small>
+        </div>
+        <div className="champ">
+          <label htmlFor="media">Photo, audio ou vidéo (optionnel)</label>
+          <input
+            id="media"
+            type="file"
+            accept="image/*,audio/*,video/*"
+            onChange={handleFichier}
+          />
+          <small>Max 5 Mo (photo), 15 Mo (audio), 30 Mo (vidéo).</small>
+        </div>
+        <div className="champ">
+          <label htmlFor="code">Choisissez un code (min. 4 caractères)</label>
+          <input
+            id="code"
+            type="text"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            maxLength={50}
+          />
+          <small>
+            Il vous servira à modifier ou retirer ce témoignage plus tard. Notez-le
+            précieusement : impossible à récupérer s'il est oublié.
+          </small>
+        </div>
+        {erreur && <div className="message message-erreur">{erreur}</div>}
+        <div className="groupe-boutons">
+          <button type="button" className="bouton bouton-discret" onClick={demanderAbandon} disabled={envoi}>
+            Annuler
+          </button>
+          <button type="submit" className="bouton" disabled={envoi}>
+            {envoi ? 'Envoi…' : 'Enregistrer'}
+          </button>
+        </div>
+      </form>
+
+      {confirmationAbandon && (
+        <ConfirmDialog
+          titre="Abandonner la saisie ?"
+          message="Voulez-vous vraiment abandonner la saisie du témoignage ?"
+          libelleConfirmer="Oui"
+          libelleAnnuler="Non"
+          danger
+          onConfirmer={() => {
+            setConfirmationAbandon(false)
+            onAnnuler?.()
+          }}
+          onAnnuler={() => setConfirmationAbandon(false)}
         />
-      </div>
-      <div className="champ">
-        <label htmlFor="email">Votre email (optionnel, non affiché)</label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
-      <div className="champ">
-        <label htmlFor="texte">Votre témoignage</label>
-        <textarea
-          id="texte"
-          value={texte}
-          onChange={(e) => setTexte(e.target.value)}
-          maxLength={2000}
-          dir="auto"
-        />
-        <small>{texte.length}/2000 caractères</small>
-      </div>
-      <div className="champ">
-        <label htmlFor="media">Photo, audio ou vidéo (optionnel)</label>
-        <input
-          id="media"
-          type="file"
-          accept="image/*,audio/*,video/*"
-          onChange={handleFichier}
-        />
-        <small>Max 5 Mo (photo), 15 Mo (audio), 30 Mo (vidéo).</small>
-      </div>
-      <div className="champ">
-        <label htmlFor="code">Choisissez un code (min. 4 caractères)</label>
-        <input
-          id="code"
-          type="text"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          maxLength={50}
-        />
-        <small>
-          Il vous servira à modifier ou retirer ce témoignage plus tard. Notez-le
-          précieusement : impossible à récupérer s'il est oublié.
-        </small>
-      </div>
-      {erreur && <div className="message message-erreur">{erreur}</div>}
-      <button type="submit" className="bouton" disabled={envoi}>
-        {envoi ? 'Envoi…' : 'Déposer mon témoignage'}
-      </button>
-    </form>
+      )}
+    </>
   )
 }

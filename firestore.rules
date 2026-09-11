@@ -58,7 +58,7 @@ service cloud.firestore {
           && request.resource.data.nomAffiche.size() < 200
           && request.resource.data.texte is string
           && request.resource.data.texte.size() > 0
-          && request.resource.data.texte.size() < 3000
+          && request.resource.data.texte.size() < 20000
           && request.resource.data.code is string
           && request.resource.data.code.size() >= 4
           && request.resource.data.code.size() < 100;

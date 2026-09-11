@@ -9,6 +9,7 @@ export default function Personne() {
   const [page, setPage] = useState(undefined)
   const [temoignages, setTemoignages] = useState(null)
   const [erreur, setErreur] = useState('')
+  const [formulaireOuvert, setFormulaireOuvert] = useState(false)
 
   const charger = useCallback(async () => {
     try {
@@ -47,7 +48,11 @@ export default function Personne() {
 
       {page.bio && <p className="bio" dir="auto">{page.bio}</p>}
 
-      <h2>Témoignages</h2>
+      <button className="bouton" onClick={() => setFormulaireOuvert(true)}>
+        Ajouter un témoignage
+      </button>
+
+      <h2 style={{ marginTop: 32 }}>Témoignages</h2>
       <div className="registre">
         {temoignages === null && <p className="vide">Chargement…</p>}
         {temoignages?.length === 0 && (
@@ -58,8 +63,26 @@ export default function Personne() {
         ))}
       </div>
 
-      <h2>Déposer un témoignage</h2>
-      <FormulaireTemoignage pageId={pageId} nomPage={page.nom} onDepose={charger} />
+      {formulaireOuvert && (
+        <div className="fenetre-modale-fond" role="presentation">
+          <div
+            className="fenetre-modale"
+            style={{ maxWidth: 560 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titre-temoignage"
+          >
+            <h3 id="titre-temoignage" dir="auto">Témoignage pour {page.nom}</h3>
+            <FormulaireTemoignage
+              pageId={pageId}
+              nomPage={page.nom}
+              onDepose={charger}
+              onAnnuler={() => setFormulaireOuvert(false)}
+              onFermer={() => setFormulaireOuvert(false)}
+            />
+          </div>
+        </div>
+      )}
     </>
   )
 }

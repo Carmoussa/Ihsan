@@ -4,6 +4,7 @@ export default function ConfirmDialog({
   titre,
   message,
   libelleConfirmer = 'Confirmer',
+  libelleAnnuler = 'Annuler',
   danger = false,
   champMotif = false,
   libelleMotif = 'Motif (optionnel)',
@@ -85,7 +86,7 @@ export default function ConfirmDialog({
             {envoi ? 'En cours…' : libelleConfirmer}
           </button>
           <button className="bouton bouton-discret" onClick={onAnnuler} disabled={envoi}>
-            Annuler
+            {libelleAnnuler}
           </button>
         </div>
       </div>

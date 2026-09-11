@@ -81,7 +81,7 @@ export default function EntreeTemoignage({ temoignage, pageId, onChange }) {
           </div>
           <div className="champ">
             <label>Votre témoignage</label>
-            <textarea value={texte} onChange={(e) => setTexte(e.target.value)} maxLength={2000} dir="auto" />
+            <textarea value={texte} onChange={(e) => setTexte(e.target.value)} maxLength={5000} dir="auto" />
           </div>
           <div className="champ">
             <label>Votre code</label>

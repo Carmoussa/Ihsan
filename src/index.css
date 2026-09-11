@@ -496,6 +496,8 @@ table.tableau-admin td {
   padding: 24px;
   max-width: 420px;
   width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .tableau-admin .lien-discret[disabled],
