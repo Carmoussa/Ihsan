@@ -46,12 +46,12 @@ service cloud.firestore {
 
       // ---------- témoignages ----------
       match /temoignages/{temoignageId} {
-        allow read: if resource.data.statut == 'approuve'
-          || estAdminDeLaPage(pageId)
-          || (estConnecte() && resource.data.email == emailUtilisateur());
+        allow read: if resource.data.statut == 'approuve' || estAdminDeLaPage(pageId);
 
         // Dépôt public : pas besoin d'être connecté. Le statut doit
-        // impérativement être "en_attente" à la création.
+        // impérativement être "en_attente" à la création, et un code (choisi
+        // par l'auteur) est obligatoire — c'est lui qui autorisera plus tard
+        // la modification ou la suppression, sans compte ni email vérifié.
         allow create: if request.resource.data.statut == 'en_attente'
           && request.resource.data.nomAffiche is string
           && request.resource.data.nomAffiche.size() > 0
@@ -59,25 +59,24 @@ service cloud.firestore {
           && request.resource.data.texte is string
           && request.resource.data.texte.size() > 0
           && request.resource.data.texte.size() < 3000
-          && request.resource.data.email is string
-          && request.resource.data.email.matches('^[^@]+@[^@]+[.][^@]+$');
+          && request.resource.data.code is string
+          && request.resource.data.code.size() >= 4
+          && request.resource.data.code.size() < 100;
 
-        // Le propriétaire (email correspondant au compte connecté via le lien
-        // magique) peut modifier ou supprimer son propre témoignage. Toute
-        // modification repasse obligatoirement au statut "en_attente".
-        allow update: if (estConnecte()
-            && resource.data.email == emailUtilisateur()
-            && request.resource.data.email == resource.data.email
-            && request.resource.data.statut == 'en_attente')
-          // ...ou un admin de la page qui ne fait que changer le statut
-          // (approbation/rejet), sans toucher au contenu.
+        // L'auteur, muni du bon code, peut modifier son témoignage (repasse
+        // en modération) ou le masquer ("supprime" — un vrai delete ne peut
+        // pas être vérifié par code, seule une écriture le peut). Le code
+        // soumis doit correspondre exactement à celui enregistré ; ni l'un
+        // ni l'autre n'est jamais renvoyé au client.
+        allow update: if (request.resource.data.code == resource.data.code
+            && (request.resource.data.statut == 'en_attente' || request.resource.data.statut == 'supprime'))
+          // ...ou un admin de la page, qui ne touche jamais au contenu ni au code.
           || (estAdminDeLaPage(pageId)
             && request.resource.data.nomAffiche == resource.data.nomAffiche
             && request.resource.data.texte == resource.data.texte
-            && request.resource.data.email == resource.data.email);
+            && request.resource.data.code == resource.data.code);
 
-        allow delete: if estAdminDeLaPage(pageId)
-          || (estConnecte() && resource.data.email == emailUtilisateur());
+        allow delete: if estAdminDeLaPage(pageId);
       }
     }
 
@@ -90,6 +89,24 @@ service cloud.firestore {
         && request.resource.data.temoignageId is string
         && request.resource.data.traite == false;
       allow read, update, delete: if estAdminDeLaPage(resource.data.pageId);
+    }
+
+    // ---------- modèles d'email ----------
+    // Lecture publique : l'email d'accusé de dépôt part depuis le navigateur
+    // du visiteur lui-même, qui doit donc pouvoir lire le modèle. Écriture
+    // réservée aux super-admins (onglet Email).
+    match /modelesEmail/{type} {
+      allow read: if true;
+      allow write: if estSuperAdmin();
+    }
+
+    // ---------- journal des emails envoyés ----------
+    // Sert uniquement au suivi du quota EmailJS (onglet Tests, admin). Écrit
+    // à chaque tentative d'envoi, y compris par des visiteurs non connectés
+    // (dépôt de témoignage) — lecture réservée aux admins.
+    match /emailsEnvoyes/{id} {
+      allow create: if request.resource.data.type is string;
+      allow read: if estAdmin();
     }
   }
 }

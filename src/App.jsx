@@ -3,7 +3,6 @@ import Layout from './components/Layout'
 import Accueil from './pages/Accueil'
 import ListePersonnes from './pages/ListePersonnes'
 import Personne from './pages/Personne'
-import FinirConnexion from './pages/FinirConnexion'
 import Admin from './pages/Admin'
 
 export default function App() {
@@ -13,7 +12,6 @@ export default function App() {
         <Route path="/" element={<Accueil />} />
         <Route path="/temoignages" element={<ListePersonnes />} />
         <Route path="/personne/:pageId" element={<Personne />} />
-        <Route path="/connexion" element={<FinirConnexion />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<p className="vide">Page introuvable.</p>} />
       </Routes>

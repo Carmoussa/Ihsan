@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function emailUtilisateur() {
+      return request.auth.token.email.lower();
+    }
+
+    function estAdminDeLaPage(pageId) {
+      return request.auth != null && request.auth.token.email != null &&
+        firestore.exists(/databases/(default)/documents/admins/$(emailUtilisateur())) &&
+        (
+          firestore.get(/databases/(default)/documents/admins/$(emailUtilisateur())).data.superAdmin == true ||
+          pageId in firestore.get(/databases/(default)/documents/admins/$(emailUtilisateur())).data.pageIds
+        );
+    }
+
+    // Photo d'une page (personne défunte) : lecture publique, écriture
+    // réservée aux admins autorisés sur cette page.
+    match /pages/{pageId}/photo-{fichier} {
+      allow read: if true;
+      allow write: if estAdminDeLaPage(pageId);
+      allow delete: if estAdminDeLaPage(pageId);
+    }
+
+    // Média joint à un témoignage : dépôt public (comme le témoignage
+    // lui-même), taille et type limités faute de pouvoir authentifier le
+    // visiteur à ce stade. Suppression réservée à l'admin de la page ou au
+    // propriétaire du témoignage (vérifié via le document Firestore associé).
+    match /pages/{pageId}/temoignages/{temoignageId}/media-{fichier} {
+      allow read: if true;
+
+      allow create: if request.resource.size < 30 * 1024 * 1024 &&
+        (
+          request.resource.contentType.matches('image/.*') ||
+          request.resource.contentType.matches('audio/.*') ||
+          request.resource.contentType.matches('video/.*')
+        );
+
+      allow delete: if estAdminDeLaPage(pageId) ||
+        (request.auth != null && request.auth.token.email != null &&
+         firestore.get(/databases/(default)/documents/pages/$(pageId)/temoignages/$(temoignageId)).data.email == emailUtilisateur());
+    }
+  }
+}

@@ -1,6 +1,5 @@
 import {
   collection,
-  collectionGroup,
   doc,
   addDoc,
   updateDoc,
@@ -27,24 +26,28 @@ export async function lirePage(pageId) {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null
 }
 
-export async function creerPage({ nom, dates, bio, photoUrl }) {
+export async function creerPage({ nom, dates, bio, photoUrl, photoChemin }) {
   const ref = await addDoc(collection(db, 'pages'), {
     nom,
     dates: dates || '',
     bio: bio || '',
     photoUrl: photoUrl || '',
+    photoChemin: photoChemin || '',
     actif: true,
     creeLe: serverTimestamp(),
   })
   return ref.id
 }
 
-export async function modifierPage(pageId, { nom, dates, bio, photoUrl }) {
+// Si une nouvelle photo remplace une photo précédemment téléversée, l'ancien
+// fichier reste dans Cloudinary (suppression non automatisée — voir storage.js).
+export async function modifierPage(pageId, { nom, dates, bio, photoUrl, photoChemin }) {
   await updateDoc(doc(db, 'pages', pageId), {
     nom,
     dates: dates || '',
     bio: bio || '',
     photoUrl: photoUrl || '',
+    photoChemin: photoChemin || '',
   })
 }
 
@@ -78,29 +81,55 @@ export async function listerTemoignagesEnAttente(pageId) {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 }
 
-export async function deposerTemoignage(pageId, { nomAffiche, email, texte }) {
-  await addDoc(collection(db, 'pages', pageId, 'temoignages'), {
+// Pré-génère un identifiant de témoignage, pour pouvoir téléverser un
+// éventuel média (photo/audio/vidéo) au bon endroit avant l'écriture du
+// document lui-même.
+export function nouveauTemoignageId(pageId) {
+  return doc(collection(db, 'pages', pageId, 'temoignages')).id
+}
+
+export async function deposerTemoignage(
+  pageId,
+  temoignageId,
+  { nomAffiche, email, texte, code, mediaUrl, mediaChemin, mediaType },
+) {
+  await setDoc(doc(db, 'pages', pageId, 'temoignages', temoignageId), {
     nomAffiche,
-    email: email.trim().toLowerCase(),
+    email: email ? email.trim().toLowerCase() : '',
     texte,
+    code,
+    mediaUrl: mediaUrl || '',
+    mediaChemin: mediaChemin || '',
+    mediaType: mediaType || '',
     statut: 'en_attente',
     creeLe: serverTimestamp(),
     modifieLe: serverTimestamp(),
   })
 }
 
-export async function modifierTemoignage(pageId, temoignageId, { nomAffiche, texte }) {
+// Modifie un témoignage déjà publié, à condition de fournir le bon code.
+// Le code est soumis à Firestore, qui le compare lui-même côté serveur à la
+// valeur enregistrée (voir firestore.rules) — l'application ne le vérifie
+// jamais elle-même, et ne le lit jamais en retour.
+export async function modifierTemoignageParCode(pageId, temoignageId, { nomAffiche, texte, code }) {
   await updateDoc(doc(db, 'pages', pageId, 'temoignages', temoignageId), {
     nomAffiche,
     texte,
+    code,
     statut: 'en_attente', // toute modification repasse en modération
     modifieLe: serverTimestamp(),
   })
 }
 
-export async function changerStatutTemoignage(pageId, temoignageId, statut) {
+// "Suppression" par l'auteur : en l'absence de compte, Firestore ne peut pas
+// autoriser une vraie suppression (delete) sur la base d'un code — seule une
+// écriture (update) peut être vérifiée ainsi. Le témoignage est donc masqué
+// (statut "supprime"), puis un admin le supprime définitivement.
+export async function demanderSuppressionParCode(pageId, temoignageId, code) {
   await updateDoc(doc(db, 'pages', pageId, 'temoignages', temoignageId), {
-    statut,
+    code,
+    statut: 'supprime',
+    modifieLe: serverTimestamp(),
   })
 }
 
@@ -118,36 +147,20 @@ export async function rejeterTemoignage(pageId, temoignageId, motif) {
   })
 }
 
-// Tous les témoignages (tous statuts) déposés par une adresse email donnée,
-// sur une page précise — permet à l'auteur de voir où en est son témoignage
-// (y compris en attente ou refusé) lorsqu'il revient via son lien magique.
-export async function listerMesTemoignagesSurPage(pageId, email) {
-  const q = query(
-    collection(db, 'pages', pageId, 'temoignages'),
-    where('email', '==', email.trim().toLowerCase()),
-  )
-  const snap = await getDocs(q)
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-}
-
 export async function supprimerTemoignage(pageId, temoignageId) {
   await deleteDoc(doc(db, 'pages', pageId, 'temoignages', temoignageId))
 }
 
-// Retrouve tous les témoignages (toutes pages confondues) déposés avec un email donné.
-// Nécessite un index Firestore "collection group" sur temoignages.email (voir firestore.indexes.json).
-export async function listerMesTemoignages(email) {
+// Témoignages "supprimés" par leur auteur (via le code) mais pas encore
+// définitivement effacés — un admin les traite (suppression réelle) depuis
+// la file de modération.
+export async function listerTemoignagesSupprimesParAuteur(pageId) {
   const q = query(
-    collectionGroup(db, 'temoignages'),
-    where('email', '==', email.trim().toLowerCase()),
-    orderBy('creeLe', 'desc'),
+    collection(db, 'pages', pageId, 'temoignages'),
+    where('statut', '==', 'supprime'),
   )
   const snap = await getDocs(q)
-  return snap.docs.map((d) => ({
-    id: d.id,
-    pageId: d.ref.parent.parent.id,
-    ...d.data(),
-  }))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 }
 
 // ---------- Signalements ----------

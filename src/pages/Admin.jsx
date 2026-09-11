@@ -5,6 +5,7 @@ import AdminConnexion from './AdminConnexion'
 import ModerationPage from '../components/ModerationPage'
 import GestionPages from '../components/GestionPages'
 import GestionAdmins from '../components/GestionAdmins'
+import GestionEmail from '../components/GestionEmail'
 
 export default function Admin() {
   const { user, admin, chargement } = useAuth()
@@ -43,7 +44,11 @@ export default function Admin() {
 
   const onglets = [{ id: 'moderation', label: 'Modération' }]
   if (admin.superAdmin) {
-    onglets.push({ id: 'pages', label: 'Pages' }, { id: 'admins', label: 'Administrateurs' })
+    onglets.push(
+      { id: 'pages', label: 'Pages' },
+      { id: 'admins', label: 'Administrateurs' },
+      { id: 'email', label: 'Email' },
+    )
   }
 
   return (
@@ -113,6 +118,7 @@ export default function Admin() {
 
       {onglet === 'pages' && admin.superAdmin && <GestionPages />}
       {onglet === 'admins' && admin.superAdmin && <GestionAdmins />}
+      {onglet === 'email' && admin.superAdmin && <GestionEmail />}
     </>
   )
 }

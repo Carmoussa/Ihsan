@@ -7,16 +7,31 @@ export default function ConfirmDialog({
   danger = false,
   champMotif = false,
   libelleMotif = 'Motif (optionnel)',
+  champCode = false,
   onConfirmer,
   onAnnuler,
 }) {
   const [motif, setMotif] = useState('')
+  const [code, setCode] = useState('')
   const [envoi, setEnvoi] = useState(false)
+  const [erreur, setErreur] = useState('')
 
   async function confirmer() {
+    if (champCode && code.trim().length < 4) {
+      setErreur('Merci de saisir votre code.')
+      return
+    }
+    setErreur('')
     setEnvoi(true)
     try {
-      await onConfirmer(motif.trim())
+      await onConfirmer(champCode ? code.trim() : motif.trim())
+    } catch (err) {
+      console.error(err)
+      setErreur(
+        champCode
+          ? "Code incorrect, ou une erreur s'est produite."
+          : "Une erreur s'est produite.",
+      )
     } finally {
       setEnvoi(false)
     }
@@ -45,6 +60,21 @@ export default function ConfirmDialog({
             />
           </div>
         )}
+
+        {champCode && (
+          <div className="champ">
+            <label>Votre code</label>
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              maxLength={50}
+              autoFocus
+            />
+          </div>
+        )}
+
+        {erreur && <div className="message message-erreur">{erreur}</div>}
 
         <div className="groupe-boutons">
           <button

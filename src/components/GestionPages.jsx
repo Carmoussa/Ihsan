@@ -1,17 +1,30 @@
 import { useEffect, useState } from 'react'
 import { Pencil, Power, PowerOff, Trash2, Plus } from 'lucide-react'
 import { listerPages, creerPage, modifierPage, basculerActivationPage, supprimerPage } from '../lib/data'
+import { uploaderFichier, typeMedia, LIMITES_TAILLE } from '../lib/storage'
 import ConfirmDialog from './ConfirmDialog'
 
 const CHAMPS_VIDES = { nom: '', dates: '', bio: '', photoUrl: '' }
+
+function validerPhoto(fichier) {
+  if (typeMedia(fichier) !== 'image') return 'Seules les images sont acceptées pour la photo.'
+  if (fichier.size > LIMITES_TAILLE.image) {
+    return `Image trop volumineuse (max ${Math.round(LIMITES_TAILLE.image / 1024 / 1024)} Mo).`
+  }
+  return null
+}
 
 export default function GestionPages() {
   const [pages, setPages] = useState(null)
   const [creationOuverte, setCreationOuverte] = useState(false)
   const [nouvellePage, setNouvellePage] = useState(CHAMPS_VIDES)
+  const [fichierNouvelle, setFichierNouvelle] = useState(null)
   const [pageEnEditionId, setPageEnEditionId] = useState(null)
   const [champsEdition, setChampsEdition] = useState(CHAMPS_VIDES)
+  const [fichierEdition, setFichierEdition] = useState(null)
   const [action, setAction] = useState(null) // { page, type: 'desactiver' | 'activer' | 'supprimer' }
+  const [erreur, setErreur] = useState('')
+  const [envoi, setEnvoi] = useState(false)
 
   async function charger() {
     setPages(await listerPages())
@@ -21,35 +34,94 @@ export default function GestionPages() {
     charger()
   }, [])
 
+  function handleFichier(e, setFichier) {
+    const f = e.target.files?.[0]
+    if (!f) {
+      setFichier(null)
+      return
+    }
+    const messageErreur = validerPhoto(f)
+    if (messageErreur) {
+      setErreur(messageErreur)
+      e.target.value = ''
+      setFichier(null)
+      return
+    }
+    setErreur('')
+    setFichier(f)
+  }
+
   async function handleCreerPage(e) {
     e.preventDefault()
     if (!nouvellePage.nom.trim()) return
-    await creerPage({
-      nom: nouvellePage.nom.trim(),
-      dates: nouvellePage.dates.trim(),
-      bio: nouvellePage.bio.trim(),
-      photoUrl: nouvellePage.photoUrl.trim(),
-    })
-    setNouvellePage(CHAMPS_VIDES)
-    setCreationOuverte(false)
-    charger()
+    setEnvoi(true)
+    try {
+      const pageId = await creerPage({
+        nom: nouvellePage.nom.trim(),
+        dates: nouvellePage.dates.trim(),
+        bio: nouvellePage.bio.trim(),
+        photoUrl: nouvellePage.photoUrl.trim(),
+      })
+      if (fichierNouvelle) {
+        const chemin = `pages/${pageId}/photo-${fichierNouvelle.name}`
+        const { url } = await uploaderFichier(chemin, fichierNouvelle)
+        await modifierPage(pageId, {
+          nom: nouvellePage.nom.trim(),
+          dates: nouvellePage.dates.trim(),
+          bio: nouvellePage.bio.trim(),
+          photoUrl: url,
+          photoChemin: chemin,
+        })
+      }
+      setNouvellePage(CHAMPS_VIDES)
+      setFichierNouvelle(null)
+      setCreationOuverte(false)
+      charger()
+    } catch (err) {
+      console.error(err)
+      setErreur("La création de la page n'a pas abouti.")
+    } finally {
+      setEnvoi(false)
+    }
   }
 
   function ouvrirEdition(p) {
     setPageEnEditionId(p.id)
     setChampsEdition({ nom: p.nom, dates: p.dates || '', bio: p.bio || '', photoUrl: p.photoUrl || '' })
+    setFichierEdition(null)
+    setErreur('')
   }
 
   async function enregistrerEdition(e) {
     e.preventDefault()
-    await modifierPage(pageEnEditionId, {
-      nom: champsEdition.nom.trim(),
-      dates: champsEdition.dates.trim(),
-      bio: champsEdition.bio.trim(),
-      photoUrl: champsEdition.photoUrl.trim(),
-    })
-    setPageEnEditionId(null)
-    charger()
+    setEnvoi(true)
+    try {
+      let photoUrl = champsEdition.photoUrl.trim()
+      let photoChemin = pages?.find((p) => p.id === pageEnEditionId)?.photoChemin || ''
+
+      if (fichierEdition) {
+        const chemin = `pages/${pageEnEditionId}/photo-${fichierEdition.name}`
+        const resultat = await uploaderFichier(chemin, fichierEdition)
+        photoUrl = resultat.url
+        photoChemin = chemin
+      }
+
+      await modifierPage(pageEnEditionId, {
+        nom: champsEdition.nom.trim(),
+        dates: champsEdition.dates.trim(),
+        bio: champsEdition.bio.trim(),
+        photoUrl,
+        photoChemin,
+      })
+      setPageEnEditionId(null)
+      setFichierEdition(null)
+      charger()
+    } catch (err) {
+      console.error(err)
+      setErreur("La modification n'a pas abouti.")
+    } finally {
+      setEnvoi(false)
+    }
   }
 
   async function confirmerAction() {
@@ -108,10 +180,13 @@ export default function GestionPages() {
                 value={champsEdition.photoUrl}
                 onChange={(e) => setChampsEdition({ ...champsEdition, photoUrl: e.target.value })}
               />
+              <small>Ou téléversez une image ci-dessous (elle remplacera l'URL) :</small>
+              <input type="file" accept="image/*" onChange={(e) => handleFichier(e, setFichierEdition)} />
             </div>
+            {erreur && <div className="message message-erreur">{erreur}</div>}
             <div className="groupe-boutons">
-              <button type="submit" className="bouton">
-                Enregistrer
+              <button type="submit" className="bouton" disabled={envoi}>
+                {envoi ? 'Enregistrement…' : 'Enregistrer'}
               </button>
               <button
                 type="button"
@@ -206,10 +281,13 @@ export default function GestionPages() {
                   value={nouvellePage.photoUrl}
                   onChange={(e) => setNouvellePage({ ...nouvellePage, photoUrl: e.target.value })}
                 />
+                <small>Ou téléversez une image ci-dessous (elle remplacera l'URL) :</small>
+                <input type="file" accept="image/*" onChange={(e) => handleFichier(e, setFichierNouvelle)} />
               </div>
+              {erreur && <div className="message message-erreur">{erreur}</div>}
               <div className="groupe-boutons">
-                <button type="submit" className="bouton">
-                  Créer la page
+                <button type="submit" className="bouton" disabled={envoi}>
+                  {envoi ? 'Création…' : 'Créer la page'}
                 </button>
                 <button
                   type="button"
@@ -217,6 +295,7 @@ export default function GestionPages() {
                   onClick={() => {
                     setCreationOuverte(false)
                     setNouvellePage(CHAMPS_VIDES)
+                    setFichierNouvelle(null)
                   }}
                 >
                   Annuler
